@@ -16,7 +16,7 @@ exper_err=array('d',[0.254345,0.257576,0.247761]) # Pseudo
 #    exper[i]=(exper[i]-16.51)/0.729
 #    exper_err[i]=(exper_err[i])/0.729
 
-c1 = TCanvas("canvas 1", "c1", 800, 600)
+c1 = TCanvas("canvas 1", "c1")
 c1.cd()
 tdrstyle.setTDRStyle()
 
@@ -26,6 +26,13 @@ graph.SetMarkerStyle(21)
 graph.SetTitle("")
 graph.GetXaxis().SetTitle("Predicted Energy Peak Position [GeV]")
 graph.GetYaxis().SetTitle("Measured Energy Peak Position [GeV]")
+graph.GetXaxis().SetRangeUser(64.0,70.0)
+graph.GetYaxis().SetRangeUser(64.0,70.0)
+graph.GetXaxis().SetTitleFont(42)
+graph.GetYaxis().SetTitleFont(42)
+graph.GetXaxis().SetTitleSize(0.035)
+graph.GetYaxis().SetTitleSize(0.035)
+graph.GetXaxis().SetTitleOffset(1.4)
 graph.GetYaxis().SetTitleOffset(1.4)
 
 gfit = TF1("f","[0] + [1] * x")
@@ -70,11 +77,11 @@ gPad.Update()
 stats = gPad.GetPrimitive("stats")
 stats.__class__ = ROOT.TPaveStats
 stats.SetY1NDC(0.1)
-stats.SetY2NDC(0.4)
-stats.SetX1NDC(0.6)
+stats.SetY2NDC(0.3)
+stats.SetX1NDC(0.7)
 stats.SetX2NDC(0.9)
 
 # Save the plot
 gPad.RedrawAxis()
-c1.SaveAs("calibration.pdf")
+c1.SaveAs("calibration_new.png")
 
