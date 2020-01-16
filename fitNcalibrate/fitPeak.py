@@ -220,6 +220,63 @@ def plotter(h=None,name=None):
     del c1
 
 
+
+def plotter_cal(h=None,name=None):
+    c1 = TCanvas("c1","")
+    c1.cd()
+    tdrstyle.setTDRStyle()
+    gROOT.ForceStyle()
+    gROOT.Reset()
+    h.UseCurrentStyle()
+    fitfunc_gaus = TF1("Gaussian", myFitFunc, 64.0, 67.0, 3)
+    ## Set normalization
+    fitfunc_gaus.SetParameter(0, h.Integral());
+    fitfunc_gaus.SetParLimits(0, 0.1*h.Integral(), 2.5*h.Integral());
+    ## Set gaussian mean starting value and limits
+    fitfunc_gaus.SetParameter(1, 67.5);
+    fitfunc_gaus.SetParLimits(1, 64.0, 70.0);
+    ## Set gaussian width starting value and limits
+    fitfunc_gaus.SetParameter(2, 0.05);
+    fitfunc_gaus.SetParLimits(2, 0.1, 2.0);
+
+    h.Fit("Gaussian","EM","",64.0,70.0)
+    h.Draw()
+
+    label1 = TLatex()
+    label1.SetNDC()
+    label1.SetTextFont(60)
+    label1.SetTextSize(0.07)
+    label1.SetTextAlign(31)
+    label1.DrawLatex(0.32, 0.92, "CMS DAS")
+    label2 = TLatex()
+    label2.SetNDC()
+    label2.SetTextFont(42)
+    label2.SetTextSize(0.06)
+    label2.SetTextAlign(11)
+    label2.DrawLatex(0.33, 0.92, "#it{Simulation}")
+
+    c1.Update()
+    stats = c1.GetPrimitive("stats")
+    stats.__class__ = ROOT.TPaveStats
+    stats.SetY1NDC(0.6)
+    stats.SetY2NDC(0.9)
+    stats.SetX1NDC(0.6)
+    stats.SetX2NDC(0.9)
+    c1.RedrawAxis()
+    c1.Update()
+
+    c1.SaveAs(name)
+    c1.Close()
+    del c1
+
+
+
+
+
+
+
+
+
 def plotter_err(h=None,name=None):
     c1 = TCanvas("c1","")
     c1.cd()
@@ -322,6 +379,12 @@ def main():
     E_peak = TH1F("E_peak", "", 100,60,70) # 172v5
     #E_peak = TH1F("E_peak", "", 50,64,70) # 175v5
 
+    #Eb_calibrated = TH1F("Eb_calibrated", "", 100,62,72) # 169v5
+    Eb_calibrated = TH1F("Eb_calibrated", "", 100,64,74) # 172v5
+    #Eb_calibrated = TH1F("Eb_calibrated", "", 100,66,76) # 175v5
+
+
+
     #E_peak_err = TH1F("E_peak_err", "", 30,0.09,0.2) # 169v5
     E_peak_err = TH1F("E_peak_err", "", 400,0.01,0.15) # 172v5
     #E_peak_err = TH1F("E_peak_err", "", 30,0.08,0.2) # 175v5
@@ -342,12 +405,21 @@ def main():
             hpe.SetBinContent(ibin,fluct)
             err = math.sqrt(fluct)/math.exp(x)
             hpe.SetBinError(ibin,err)
-    # Calculate the energy peak position in the big MC sample
+        # Calculate the energy peak position in the big MC sample
+
         Eb,DEb = gPeak(h=hpe,inDir=opt.inDir,isData=opt.isData,lumi=opt.lumi)
         E_peak.Fill(Eb)
         E_peak_err.Fill(DEb)
-        pull=(Eb-pred)/DEb
-        hpull.Fill(pull)
+
+        #apply the calibration
+        Eb_cal=(Eb-29.6936)/0.529809
+        Eb_calibrated.Fill(Eb_cal)
+   
+#        pull=(Eb_calibrated-pred)/DEb
+#        hpull.Fill(pull)
+#        print Eb, DEb, "in loop"
+#    print Eb, DEb, "out loop"
+
 
 #   Ebcal=(Eb-29.6)/0.5312
 #   DEbcal=DEb/0.5312
@@ -355,10 +427,12 @@ def main():
 #   pullcal=(Ebcal-pred)/DEbcal
 #   hpullcal.Fill(pullcal)
 
-    plotter(E_peak,"Eb_m172p5.pdf")
-    plotter_err(E_peak_err,"Eb__m172p5_err.pdf")
-    plotter_err(hpull,"Pull_m172p5.pdf")
-#    plotter(hpullcal,"Pull_corr.pdf")
+#   plotter(E_peak,"Eb_m172p5.pdf")
+    plotter_cal(Eb_calibrated,"Eb_cal_m172p5.pdf")
+
+#   plotter_err(E_peak_err,"Eb__m172p5_err.pdf")
+#   plotter_err(hpull,"Pull_m172p5.pdf")
+#   plotter(hpullcal,"Pull_corr.pdf")
 
 
 
