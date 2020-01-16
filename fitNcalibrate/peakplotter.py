@@ -6,11 +6,11 @@ import tdrstyle
 
 # Add a zero to the theoretical values to make a nice y=x plot
 theor=array('d',[0.0,65.740336799410,67.570939637681,69.390239814814])
-#exper=array('d',[64.3,66.05,66.97]) # Pseudo
-exper=array('d',[64.89,66.34,67.09])
+exper=array('d',[64.5710,65.3953,66.5026]) # Pseudo
+#exper=array('d',[64.89,66.34,67.09])
 theor_err=array('d',[0.0079,0.0077,0.0076])
-#exper_err=array('d',[0.14,0.14,0.135]) # Pseudo
-exper_err=array('d',[0.59,0.26,0.64])
+exper_err=array('d',[0.254345,0.257576,0.247761]) # Pseudo
+#exper_err=array('d',[0.59,0.26,0.64])
 
 #for i in range(0,len(exper)):
 #    exper[i]=(exper[i]-16.51)/0.729

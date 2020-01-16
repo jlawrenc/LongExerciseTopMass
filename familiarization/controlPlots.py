@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import ROOT
-from ROOT import TFile, TCanvas
+from ROOT import * #TFile, TCanvas
+gROOT.SetBatch(True)
 
 ## Run by calling in the shell:
 ## python controlPlots.py
@@ -17,6 +18,7 @@ c1.cd()
 
 # Draw the variable
 treeData.Draw("Jet_pt", "Jet_CombIVF>0.605")
+gPad.SetLogy(1)
 
 # Save the plot
 c1.SaveAs("plotData.png")
@@ -38,3 +40,30 @@ treeMC.Draw("Jet_genpt", "abs(Jet_flavour)==5")
 c2.SaveAs("plotMC.png")
 
 
+#Resolution
+
+# Make a new TCanvas
+c3 = TCanvas("canvas 3", "c3", 600, 600)
+c3.cd()
+
+# Draw the variable
+treeMC.Draw("(Jet_pt-Jet_genpt)/Jet_genpt","abs(Jet_flavour)==5 && Jet_genpt > 0")
+
+# Save the plot
+c3.SaveAs("plotMC_res.png")
+
+
+
+# Gen and reco pt
+
+# Make a new TCanvas
+c4 = TCanvas("canvas 4", "c4", 600, 600)
+c4.cd()
+
+# Draw the variable
+treeMC.Draw("Lepton_pt","abs(Lepton_id)==11 && Lepton_pt < 200")
+treeMC.Draw("Lepton_pt","abs(Lepton_gid)==11 && Lepton_pt < 200", "e1same")
+
+
+# Save the plot
+c4.SaveAs("plotMC_e_mu.png")

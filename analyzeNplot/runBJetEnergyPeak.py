@@ -20,9 +20,14 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
         'bjetenls':ROOT.TH1F('bjetenls',';log(E);  1/E dN_{b jets}/dlog(E)',20,3.,7.),
         'nvtx'  :ROOT.TH1F('nvtx',';Vertex multiplicity; Events',30,0,30),
         'nbtags':ROOT.TH1F('nbtags',';b-tag multiplicity; Events',5,0,5),
+        'elec_pt':ROOT.TH1F('elec_pt',';GeV; Events',40,0,400),
+        'muon_pt':ROOT.TH1F('muon_pt',';GeV; Events',40,0,400),
+
+        'lep0_pt':ROOT.TH1F('lep0_pt',';GeV; Events',40,0,400),
+        'lep1_pt':ROOT.TH1F('lep1_pt',';GeV; Events',40,0,400),
         
         #Add new histogram for number of jets
-        #'njets':ROOT.TH1F('???','???',???,???,???),
+        'njets':ROOT.TH1F('njets','Jet multiplicity; Events',30,0,30),
         
         #Add new histogram for electron pt
 
@@ -30,7 +35,8 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
 
         }
     for key in histos:
-        histos[key].Sumw2()
+        histos[key].Sumw2()		#different weights are propagated with different uncertainty. Event generation can be of differnt 
+					#weights.
         histos[key].SetDirectory(0)
 
     #open file and loop over events tree
@@ -44,6 +50,7 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
         #require at least two jets
         nJets, nBtags, nLeptons = 0, 0, 0
         taggedJetsP4=[]
+        leptonsP4=[]
         for ij in xrange(0,tree.nJet):
 
             #get the kinematics and select the jet
@@ -53,7 +60,7 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
 
             #count selected jet
             nJets +=1
-
+            histos['njets'].Fill(nJets)
             #save P4 for b-tagged jet
             if tree.Jet_CombIVF[ij]>0.8484: # medium cut
                 nBtags+=1
@@ -72,6 +79,8 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
             #count selected leptons                    
             nLeptons +=1
 
+            leptonsP4.append(lp4)
+            
         if nLeptons<2 : continue
 
         #generator level weight only for MC
@@ -81,13 +90,25 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
 
         #ready to fill the histograms
         #fill nvtx plot
-        #histos['nvtx'].Fill(???,???)
+        histos['nvtx'].Fill(tree.nPV,evWgt)
         
         #fill nbtag plot
-        #histos['nbtags'].Fill(???,???)
+        histos['nbtags'].Fill(nBtags,evWgt)
 
         #fill electron and muon plots
         #
+
+        for ij in xrange(0,len(leptonsP4)):
+            if ij>1 : break
+
+            if ij == 0 : histos['lep0_pt'].Fill(leptonsP4[ij].Pt(),evWgt)
+            if ij == 1 : histos['lep1_pt'].Fill(leptonsP4[ij].Pt(),evWgt)
+
+            if abs(tree.Lepton_id[ij]) == 11 :
+                histos['elec_pt'].Fill(leptonsP4[ij].Pt(),evWgt)
+            if abs(tree.Lepton_id[ij]) == 13 :
+                histos['muon_pt'].Fill(leptonsP4[ij].Pt(),evWgt)
+
 
         #use up to two leading b-tagged jets
         for ij in xrange(0,len(taggedJetsP4)):
