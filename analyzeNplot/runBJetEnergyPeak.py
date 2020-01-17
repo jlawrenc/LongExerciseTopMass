@@ -5,7 +5,10 @@ import os,sys
 import json
 import pickle
 import ROOT
+import btagSF
 from subprocess import Popen, PIPE
+from btagSF import *
+
 
 """
 Perform the analysis on a single file
@@ -85,7 +88,8 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
 
         #generator level weight only for MC
         evWgt=1.0
-        if xsec              : evWgt  = xsec*tree.LepSelEffWeights[0]*tree.PUWeights[0]
+	btagw = getBtagEvtWeight(taggedJetsP4, 0)
+        if xsec              : evWgt  = xsec*tree.LepSelEffWeights[0]*tree.PUWeights[0]*btagw
         if tree.nGenWeight>0 : evWgt *= tree.GenWeights[0]
 
         #ready to fill the histograms
