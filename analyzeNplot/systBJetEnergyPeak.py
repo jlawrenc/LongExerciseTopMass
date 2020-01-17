@@ -5,7 +5,10 @@ import os,sys
 import json
 import pickle
 import ROOT
+import btagSF
 from subprocess import Popen, PIPE
+from btagSF import *
+
 
 """
 Perform the analysis on a single file
@@ -24,7 +27,6 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
         'bjetenls_jer_down':ROOT.TH1F('bjetenls_jer_down',';log(E);  1/E dN_{b jets}/dlog(E)',20,3.,7.),
 
         # JEC: uncorrelated group
-
 	'bjetenls_jec_1_up':ROOT.TH1F('bjetenls_jec_1_up',';log(E); 1/E dN_{b jets}/dlog(E)',20,3.,7.),
         'bjetenls_jec_1_down':ROOT.TH1F('bjetenls_jec_1_down',';log(E); 1/E dN_{b jets}/dlog(E)',20,3.,7.),
         'bjetenls_jec_2_up':ROOT.TH1F('bjetenls_jec_2_up',';log(E); 1/E dN_{b jets}/dlog(E)',20,3.,7.),
@@ -94,6 +96,12 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
         'bjetenls_toppT':ROOT.TH1F('bjetenls_toppT',';log(E); 1/E dN_{b jets}/dlog(E)',20,3.,7.),
         'bjetenls_norm_up':ROOT.TH1F('bjetenls_norm_up',';log(E); 1/E dN_{b jets}/dlog(E)',20,3.,7.),
         'bjetenls_norm_down':ROOT.TH1F('bjetenls_norm_down',';log(E); 1/E dN_{b jets}/dlog(E)',20,3.,7.),
+
+
+	'bjetenls_btag_up':ROOT.TH1F('bjetenls_btag_up',';log(E); 1/E dN_{b jets}/dlog(E)',20,3.,7.),
+	'bjetenls_btag_down':ROOT.TH1F('bjetenls_btag_down',';log(E); 1/E dN_{b jets}/dlog(E)',20,3.,7.),
+
+
 
         }
 
@@ -206,32 +214,47 @@ def runBJetEnergyPeak(inFileURL, outFileURL, xsec=None):
             if nJets<2 : continue
             if nBtags!=1 and nBtags!=2 : continue
 
+	    btagw = getBtagEvtWeight(taggedJetsP4, 0)
+
             ## fill JEC histograms
             for ij in xrange(0,len(taggedJetsP4)):
                 if ij>1 : break
                 if iJEC > 0 :
                     #fill JEC histograms
-		    histos['bjetenls_jec_' + str(iJEC) + '_up'].Fill(ROOT.TMath.Log(taggedJetsP4_up[ij].E()),evWgt[0]/taggedJetsP4_up[ij].E())
-		    histos['bjetenls_jec_' + str(iJEC) + '_down'].Fill(ROOT.TMath.Log(taggedJetsP4_down[ij].E()),evWgt[0]/taggedJetsP4_down[ij].E()) 
+		    histos['bjetenls_jec_' + str(iJEC) + '_up'].Fill(ROOT.TMath.Log(taggedJetsP4_up[ij].E()),btagw*evWgt[0]/taggedJetsP4_up[ij].E())
+		    histos['bjetenls_jec_' + str(iJEC) + '_down'].Fill(ROOT.TMath.Log(taggedJetsP4_down[ij].E()),btagw*evWgt[0]/taggedJetsP4_down[ij].E()) 
                 else :
                     #fill JER histogram
-		    histos['bjetenls_jer_up'].Fill(ROOT.TMath.Log(taggedJetsP4_up[ij].E()),evWgt[0]/taggedJetsP4_up[ij].E())
-		    histos['bjetenls_jer_down'].Fill(ROOT.TMath.Log(taggedJetsP4_down[ij].E()),evWgt[0]/taggedJetsP4_down[ij].E())
-                
+		    histos['bjetenls_jer_up'].Fill(ROOT.TMath.Log(taggedJetsP4_up[ij].E()),btagw*evWgt[0]/taggedJetsP4_up[ij].E())
+		    histos['bjetenls_jer_down'].Fill(ROOT.TMath.Log(taggedJetsP4_down[ij].E()),btagw*evWgt[0]/taggedJetsP4_down[ij].E())
+        
+
+	btagw = getBtagEvtWeight(taggedJetsP4, 0)	
+	btagw_up = getBtagEvtWeight(taggedJetsP4, 1)
+        btagw_down = getBtagEvtWeight(taggedJetsP4, 2)
         #save P4 for b-tagged jet
         #use up to two leading b-tagged jets
         for ij in xrange(0,len(taggedJetsP4)):
             if ij>1 : break
-            #fill other histograms (nominal and weight based)
-	    histos['bjetenls_nominal'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),evWgt[0]/taggedJetsP4[ij].E())
-            histos['bjetenls_lep_up'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),evWgt[1]/taggedJetsP4[ij].E())
-            histos['bjetenls_lep_down'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),evWgt[2]/taggedJetsP4[ij].E())
-            histos['bjetenls_PU_up'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),evWgt[3]/taggedJetsP4[ij].E())
-            histos['bjetenls_PU_down'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),evWgt[4]/taggedJetsP4[ij].E())
-            histos['bjetenls_toppT'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),evWgt[5]/taggedJetsP4[ij].E())
-            histos['bjetenls_norm_up'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),(evWgt[0]*xsecWgt_up)/taggedJetsP4[ij].E())
-            histos['bjetenls_norm_down'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),(evWgt[0]*xsecWgt_down)/taggedJetsP4[ij].E())
 
+
+
+            #fill other histograms (nominal and weight based)
+	    histos['bjetenls_nominal'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),btagw*evWgt[0]/taggedJetsP4[ij].E())
+            histos['bjetenls_lep_up'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),btagw*evWgt[1]/taggedJetsP4[ij].E())
+            histos['bjetenls_lep_down'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),btagw*evWgt[2]/taggedJetsP4[ij].E())
+            histos['bjetenls_PU_up'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),btagw*evWgt[3]/taggedJetsP4[ij].E())
+            histos['bjetenls_PU_down'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),btagw*evWgt[4]/taggedJetsP4[ij].E())
+            histos['bjetenls_toppT'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),btagw*evWgt[5]/taggedJetsP4[ij].E())
+            histos['bjetenls_norm_up'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),(btagw*evWgt[0]*xsecWgt_up)/taggedJetsP4[ij].E())
+            histos['bjetenls_norm_down'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()),(btagw*evWgt[0]*xsecWgt_down)/taggedJetsP4[ij].E())
+
+
+	    #btagw_up = getBtagEvtWeight(taggedJetsP4[ij], 1)
+	    #btagw_down = getBtagEvtWeight(taggedJetsP4[ij], 2)
+
+	    histos['bjetenls_btag_up'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()), btagw_up*evWgt[0]/taggedJetsP4[ij].E())
+            histos['bjetenls_btag_down'].Fill(ROOT.TMath.Log(taggedJetsP4[ij].E()), btagw_down*evWgt[0]/taggedJetsP4[ij].E())
 
     fIn.Close()
 
