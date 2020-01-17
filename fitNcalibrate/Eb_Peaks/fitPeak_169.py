@@ -465,7 +465,7 @@ def main():
 
         #calculating the calibrated pull
         pullcal=(Eb_cal-pred)/DEb_cal
-        if abs(pullcal)<5.0:
+        if abs(pullcal)<2.0:
             hpullcal.Fill(pullcal)
 
 
