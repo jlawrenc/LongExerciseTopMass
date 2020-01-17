@@ -12,6 +12,12 @@ theor_err=array('d',[1.0,1.0,1.0,1.0,1.0])
 exper_err=array('d',[0.7613,0.8152,0.6955]) # Pseudo
 #exper_err=array('d',[0.59,0.26,0.64])
 
+x_err=array('d',[0.0,0.0,0.0,0.0])
+y_err=array('d',[0.0136,0.0046,0.0126]) # Pseudo
+
+
+
+
 #for i in range(0,len(exper)):
 #    exper[i]=(exper[i]-16.51)/0.729
 #    exper_err[i]=(exper_err[i])/0.729
@@ -20,9 +26,9 @@ c1 = TCanvas("canvas 1", "c1")
 c1.cd()
 tdrstyle.setTDRStyle()
 
-graph = TGraph(len(exper),theor[1:],exper_err)
+graph = TGraphErrors(len(exper),theor[1:],exper_err,x_err,y_err)
 graph.SetMarkerColor(4)
-graph.SetMarkerStyle(21)
+graph.SetMarkerStyle(5)
 graph.SetTitle("")
 graph.GetXaxis().SetTitle("Predicted Energy Peak Position [GeV]")
 graph.GetYaxis().SetTitle("Pull Width")
